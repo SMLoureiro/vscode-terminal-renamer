@@ -1,49 +1,38 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
-const pidCwd = require('pid-cwd');
-const path = require('path');
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+const prefix = '🧪 ';
+const pendingNames = [];
 
-/**
- * @param {vscode.ExtensionContext} context
- */
-
-let renameTimeout = null
-
-function activate() {
-	async function renameWithDirName() {
-		const pid = await vscode.window.activeTerminal.processId
-		pidCwd(pid)
-			.then(cwd => {
-				if(cwd) {
-					const folderName = path.basename(cwd)
-					vscode.commands.executeCommand('workbench.action.terminal.renameWithArg', { name: folderName })
-				}
-			});
-	}
-
-	if(vscode.window.activeTerminal) {
-		renameWithDirName()
-	}
-
-	vscode.window.onDidOpenTerminal(() => {
-		clearTimeout(renameTimeout)
-		renameTimeout = setTimeout(() => {
-			renameWithDirName()
-		}, 400)
-	});
+/** Rename the given terminal tab */
+function rename(term, title) {
+  vscode.commands.executeCommand(
+    'workbench.action.terminal.renameWithArg',
+    { terminal: term, name: title }
+  );
 }
 
-// this method is called when your extension is deactivated
-function deactivate() {
-	clearTimeout(renameTimeout)
-	renameTimeout = undefined
-}
+/** When a debug session starts, rename the current tab or queue a name */
+vscode.debug.onDidStartDebugSession(session => {
+  const title = prefix + session.name;
+  const term  = vscode.window.activeTerminal;
 
-module.exports = {
-	activate,
-	deactivate
-}
+  if (term) {
+    // Re-used tab: rename immediately
+    rename(term, title);
+  } else {
+    // New tab will appear shortly
+    pendingNames.push(title);
+  }
+});
+
+/** When VS Code opens a terminal, give it the next queued name (if any) */
+vscode.window.onDidOpenTerminal(term => {
+  if (pendingNames.length) {
+    rename(term, pendingNames.shift());
+  }
+});
+
+function activate() { /* nothing to do at activation time */ }
+function deactivate() { /* no-op */ }
+
+module.exports = { activate, deactivate };

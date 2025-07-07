@@ -1,13 +1,15 @@
-# Terminal Auto Rename
+# Terminal Tab Auto Re-namer
 
-Automatically renames the terminal with the current folder name.
+VScode allows us to launch tasks using the debugger, however, tasks which intialise a terminal session get automatically named after the console tool (ie. debugpy) rather than the task name. Making it difficult to asses which task is running in which tab.
 
-![Terminal Auto Rename](images/terminal-auto-rename.gif)
+This extension watches for such events and renames the tab after the original task name.
+
+Automatically renames the terminal with the task runner name.
+
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 
-Initial release of Terminal Auto Rename.
+Initial release of Terminal Tab Auto Re-namer.
